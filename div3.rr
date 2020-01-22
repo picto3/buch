@@ -15,6 +15,14 @@ def new_in(F, ORD) {
     return [T*HC, HC, T];
 }
 
+def new_in2(F, ORD, U, W) {
+  /*
+    new_in(F[I],ORD);
+    -> [U*a+W_I]
+
+   */
+}
+
 def pot(F,ORD) {
     N = length(F);
     I = 0;
