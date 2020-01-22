@@ -1,17 +1,3 @@
-/*
-def spolynomial(F,G) {
-    DF = multi_degree(F);
-    DG = multi_degree(G);
-    Mx = DF[0]>DG[0]?DF[0]:DG[0];
-    My = DF[1]>DG[1]?DF[1]:DG[1];
-    Mz = DF[2]>DG[2]?DF[2]:DG[2];
-    
-    CC = [x^(Mx-DF[0])*y^(My-DF[1])*z^(Mz-DF[2])/DF[3], -x^(Mx-DG[0])*y^(My-DG[1])*z^(Mz-DG[2])/DG[3]];
-
-    return [x^(Mx-DF[0])*y^(My-DF[1])*z^(Mz-DF[2])*F/DF[3]-x^(Mx-DG[0])*y^(My-DG[1])*z^(Mz-DG[2])*G/DG[3], CC];
-}
-*/
-
 def spolynomial(F,G,ORD) {
     DF = multi_degree(F,ORD);
     DG = multi_degree(G,ORD);
@@ -32,14 +18,7 @@ def spolynomial(F,G,ORD) {
     for(I = 0; I < Len_M; I++) {
         M_Var[I] = DF[I][0]>DG[I][0]?DF[I][0]:DG[I][0];
     }
-    /*
-    Mx = DF[0][0]>DG[0][0]?DF[0][0]:DG[0][0];
-    My = DF[1][0]>DG[1][0]?DF[1][0]:DG[1][0];
-    Mz = DF[2][0]>DG[2][0]?DF[2][0]:DG[2][0];
-    */
-    //CC = [x^(Mx-DF[0])*y^(My-DF[1])*z^(Mz-DF[2])/DF[3], -x^(Mx-DG[0])*y^(My-DG[1])*z^(Mz-DG[2])/DG[3]];
-
-    //Spoly = x^(Mx-DF[0][0])*y^(My-DF[1][0])*z^(Mz-DF[2][0])*F_VEC/DF[3][0]-x^(Mx-DG[0][0])*y^(My-DG[1][0])*z^(Mz-DG[2][0])*G_VEC/DG[3][0];
+    
     Spoly1 = 1;
     Spoly2 = 1;
     for(I = 0; I < Len_M; I++) {
@@ -52,7 +31,6 @@ def spolynomial(F,G,ORD) {
         S = append(S, [Spoly[I]]);
     }
     return S;
-    //return [x^(Mx-DF[0])*y^(My-DF[1])*z^(Mz-DF[2])*F/DF[3]-x^(Mx-DG[0])*y^(My-DG[1])*z^(Mz-DG[2])*G/DG[3], CC];
 }
 
 def buchberger(F,ORD) {
@@ -67,7 +45,6 @@ def buchberger(F,ORD) {
     
     G = F;
 
-    //NEWC = [];
     Zero_vect = [];
     for(I = 0; I < length(F[0]); I++) {
         Zero_vect = append(Zero_vect, [0]);
@@ -75,39 +52,29 @@ def buchberger(F,ORD) {
     while ( Pairs != [] ) {
         P = car(Pairs);
         Pairs = cdr(Pairs);
-        //print(G[P[0]]);
-        //print(G[P[1]]);
         Sp = spolynomial(G[P[0]],G[P[1]],ORD);
-        print("SPSPSPSPSPSPSPSPSPSPSPSP");
-        print(Sp);
-        //Rem = reduction2(Sp[0],G,ORD);
         if(Sp == 0) {
             Rem = Zero_vect;
         } else {
             Rem = reduction2(Sp,G,ORD);
-            print("RRRRRRRRRRRRRRRRRRRRRR");
-            print(Rem);
         }
         if ( Rem != Zero_vect ) {
             // Gの更新
             G = append(G,[Rem]);
             print(G);
-            //print(C);
             for ( I = 0; I < N; I++ ) {
                 Pairs = cons([I,N],Pairs);
             }
             N++;
         }
     }
+
+    MG = minimal(G, ORD);
     
-    //C = matrix_matrix_to_list(NEWC);
-    // C = vtol(NEWC);
-    //return [G, C];
-    return G;
+    return MG;
 }
 
-//def minimal(G, C) {
-def minimal(G) {
+def minimal(G,ORD) {
     N = length(G);
     Zero_vec = newvect(length(G[0]));
     Zero_vect = matrix_matrix_to_list(Zero_vec);
@@ -115,39 +82,24 @@ def minimal(G) {
     MG = [];
     //CC = [];
     for(I = 0; I < N; I++) {
-        GG = [];
+        GG = G;
         for(J = 0; J < N; J++) {
+            FLAG = 1;
             if(I != J) {
-                PP = pot(G[J],ORD);
-                GG = append(GG, [PP[3]]);
+                Mono = is_reducible(G[I], G[J], ORD);
+                if(Mono != [0]) {
+                    FLAG = 0;
+                    break;
+                }
             }
         }
-        print(GG);
-        /*
-        GGG = [];
-        for(K = 0; K < length(GG); K++) {
-            GG1 = [];
-            for(L = 0; L < length(GG[K][1]); L++) {
-                GG1 = append(GG1, [GG[K][0]*GG[K][1][L]]);
-            }
-            GGG = append(GGG, [GG1]);
-        }
-        */
-                
-        PP = pot(G[I],ORD);
-        print(PP[3]);
-        print(GG);
-        RR = reduction2(PP[3],GG,ORD);
-        print(RR);
-        //if(RR[1] != 0) {
-        if(RR != Zero_vect) {
+
+        if(FLAG == 1) {
             MG = append(MG, [G[I]]);
-            //CC = append(CC, [C[I]]);
         }
     }
 
     return MG;
-    //return [MG, CC];
 }
 
 def reduce(G, C) {
